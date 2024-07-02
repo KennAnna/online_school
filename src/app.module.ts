@@ -5,7 +5,6 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { CourseModule } from './course/course.module';
-import { join } from 'path';
 @Module({
   imports: [
     TypeOrmModule.forRoot({

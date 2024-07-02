@@ -20,7 +20,7 @@ export class UserEntity {
     @Column({type: 'enum', enum: ['admin', 'user'], default: 'user'})
     role: string;
 
-    @Column({type: 'date', nullable: true})
+    @Column({type: 'date', nullable: false})
     dateOfBirth: Date;
 
     @OneToMany(() => UserTestEntity, userTest => userTest.user)
