@@ -15,40 +15,36 @@ export class AuthService {
     }
 
     async register(createUserDto: CreateUserDto) {
-
-        const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-        createUserDto.password = hashedPassword;
-        const user = await this.dataSource.getRepository(UserEntity).save(createUserDto);
+        createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+        const {password, ...user} = await this.dataSource.getRepository(UserEntity).save(createUserDto);
         const payload = {email: user.email, sub: user.userId};
 
-        const token = await this.jwtService.sign(payload);
+        const token = this.jwtService.sign(payload);
         return {
             user,
             token
         }
-
-    }
-
-    async validateUser(email: string, password: string): Promise<any> {
-        const user = await this.dataSource.getRepository(UserEntity).findOne({where: {email}});
-        if (user && await bcrypt.compare(password, user.password)) {
-            const {password, ...result} = user;
-            return result;
-        }
-        return null;
     }
 
     async login(loginUserDto: LoginUserDto) {
-        const {email, password} = loginUserDto;
 
-        const user = await this.dataSource.getRepository(UserEntity).findOne({where: {email}});
-
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        const {password, ...user}= await this.dataSource
+            .getRepository(UserEntity)
+            .findOne({
+                where: {
+                    email:loginUserDto.email
+                }
+            });
+        const passwordIsCorrect = await bcrypt.compare(loginUserDto.password,password)
+        if (!user || !passwordIsCorrect) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
         const payload = {email: user.email, sub: user.userId};
-        return this.jwtService.sign(payload);
+        const token = this.jwtService.sign(payload)
+        return {
+            token,
+            user
+        }
     }
 }

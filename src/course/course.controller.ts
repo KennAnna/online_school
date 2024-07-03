@@ -1,35 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import {ApiTags} from "@nestjs/swagger";
-@ApiTags('КУРС')
-@Controller('course')
+
+@ApiTags('КУРСЫ')
+@Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto) {
-    return this.courseService.create(createCourseDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.courseService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.courseService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto) {
-    return this.courseService.update(+id, updateCourseDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.courseService.remove(+id);
+  async createCourse(@Body() createCourseDto: CreateCourseDto, @Req() req) {
+    const userId = req.user.userId;
+    const course = await this.courseService.createCourse(createCourseDto, userId);
+    return {
+      courseId: course.courseId,
+      message: 'Course created successfully',
+    };
   }
 }
